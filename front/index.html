@@ -1,0 +1,83 @@
+<html>
+<head>
+    <title>TEST</title>
+</head>
+<script src="./js/jquery-1.11.1.min.js"></script>
+<body>
+    
+    <button class="addProc">Add Process</button>
+    <button class="addTask" type="video">Add Video Task</button>
+    <button class="addTask" type="audio">Add Audio Task</button>
+    <div class='contentDiv'></div>
+
+</body>
+
+<script type="text/javascript">
+
+$(function()
+{
+    $('body').on('click', '.addProc', function() {
+        var cont;
+        $.ajax({
+            type: "POST",
+            url: "http://127.0.0.1:8081/addProc",
+            dataType: "json",
+            success: function(data)
+            {
+                cont = $('.contentDiv').html() + 
+                    '<div class="wCont" id="w'+data.wId+'">'+
+                        '<div class="worker" id="' + data.wId + '">WORKER ' + data.wId + '\n</div>'+
+                        '<button class="deleteWorker" id="'+data.wId+'">Delete</button>'+
+                        '<div class="tasks" pid="' + data.pid + '"></div>'+
+                    '</div>';
+
+                $('.contentDiv').html(cont);
+            }
+        });
+    });
+
+    $('body').on('click', '.deleteWorker', function() {
+        var id = $(this).attr('id');
+        $.ajax({
+            type: "POST",
+            url: "http://127.0.0.1:8081/removeProc?wId=" + id,
+            success: function(data)
+            {
+                $('#w' + id).remove();
+            }
+        });
+    });  
+
+    $('body').on('click', '.addTask', function() {
+        $.ajax({
+            type: "POST",
+            url: "http://127.0.0.1:8082/upload?type=" + $(this).attr('type'),
+            dataType: "json",
+            success: function(data)
+            {
+                var cont = $('[pid="'+data.pid+'"]').html() + 
+                    "<div>Task " + data.id + ": "+
+                        "<span id='status" + data.id + "'>0%</span>"+
+                        "<button class='getStatus' tId='" + data.id + "'>Refresh</button>"+
+                    "</div>";
+                $('[pid="'+data.pid+'"]').html(cont);
+            }
+        });
+    });
+
+    $('body').on('click', '.getStatus', function() {
+        var tid = $(this).attr('tId');
+        $.ajax({
+            type: "GET",
+            url: "http://127.0.0.1:8081/status?tId=" + tid,
+            success: function(data)
+            {
+                $('[id="status'+tid+'"]').html(data + '%');
+            }
+        });
+    });
+});
+
+
+</script>
+</html>
